@@ -87,6 +87,53 @@ function NumberInput({ label, sublabel, field, active, setActive, value, onChang
   );
 }
 
+const SHOE_BRANDS = ["Nike", "Adidas", "Puma", "Reebok", "New Balance", "ASICS", "Under Armour", "Skechers", "Fila", "Hoka"];
+
+function BrandPicker({ value, onChange }) {
+  const [custom, setCustom] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const isPreset = SHOE_BRANDS.includes(value);
+
+  return (
+    <div>
+      <label style={{ display: "block", fontSize: "11px", fontWeight: "600", color: "#475569", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "7px" }}>Brand</label>
+      {/* Preset grid */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "7px", marginBottom: "10px" }}>
+        {SHOE_BRANDS.map((b) => (
+          <button key={b} onClick={() => { onChange(b); setCustom(false); }} style={{
+            padding: "7px 12px", borderRadius: "99px",
+            background: value === b ? "#1a2e4a" : "#131929",
+            border: `1.5px solid ${value === b ? "#3b82f6" : "#1e2a3a"}`,
+            color: value === b ? "#60a5fa" : "#334155",
+            fontSize: "12px", fontWeight: "600", cursor: "pointer", transition: "all 0.15s",
+            whiteSpace: "nowrap",
+          }}>{b}</button>
+        ))}
+        <button onClick={() => { setCustom(true); onChange(""); }} style={{
+          padding: "7px 12px", borderRadius: "99px",
+          background: custom || (!isPreset && value) ? "#1a1a2e" : "#131929",
+          border: `1.5px solid ${custom || (!isPreset && value) ? "#818cf8" : "#1e2a3a"}`,
+          color: custom || (!isPreset && value) ? "#818cf8" : "#334155",
+          fontSize: "12px", fontWeight: "600", cursor: "pointer", transition: "all 0.15s",
+        }}>✏️ Other</button>
+      </div>
+      {/* Custom input — shown when Other is selected or a non-preset value exists */}
+      {(custom || (!isPreset && value !== "")) && (
+        <input type="text" placeholder="Type brand name..." value={value} onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+          autoFocus
+          style={{
+            width: "100%", boxSizing: "border-box",
+            background: focused ? "#1a2235" : "#131929",
+            border: `1.5px solid ${focused ? "#818cf8" : "#1e2a3a"}`,
+            borderRadius: "14px", padding: "13px 16px",
+            color: "#f1f5f9", fontSize: "15px", outline: "none", transition: "border-color 0.2s",
+          }} />
+      )}
+    </div>
+  );
+}
+
 function TextInput({ label, value, onChange, placeholder }) {
   const [focused, setFocused] = useState(false);
   return (
@@ -181,7 +228,7 @@ function PhotoUpload({ photoUrl, onUploaded }) {
       <label style={{ display: "block", fontSize: "11px", fontWeight: "600", color: "#475569", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "7px" }}>Item Photo</label>
       {photoUrl ? (
         <div style={{ position: "relative" }}>
-          <img src={photoUrl} alt="Item" style={{ width: "100%", height: "180px", objectFit: "cover", borderRadius: "14px", border: "1.5px solid #1e2a3a", display: "block" }} />
+          <img src={photoUrl} alt="Item" style={{ width: "100%", maxHeight: "320px", objectFit: "contain", background: "#0b1120", borderRadius: "14px", border: "1.5px solid #1e2a3a", display: "block" }} />
           <button onClick={() => onUploaded("")} style={{
             position: "absolute", top: "8px", right: "8px", background: "#0b1120cc",
             border: "1px solid #334155", borderRadius: "8px", color: "#f87171",
@@ -289,12 +336,9 @@ function LocationPicker({ location, onLocationChange }) {
 }
 
 // ── TAB 1: FULL FLIP ──────────────────────────────────────────────────────────
-function FlipTab({ onBuildProfile }) {
-  const [retailPrice, setRetailPrice] = useState("");
-  const [discount, setDiscount] = useState(40);
-  const [ebayPrice, setEbayPrice] = useState("");
-  const [shippingCost, setShippingCost] = useState(String(DEFAULT_SHIPPING));
-  const [results, setResults] = useState(null);
+function FlipTab({ onBuildProfile, retailPrice, setRetailPrice, discount, setDiscount, ebayPrice, setEbayPrice, shippingCost, setShippingCost, flipResults, setFlipResults }) {
+  const results = flipResults;
+  const setResults = setFlipResults;
   const [active, setActive] = useState(null);
 
   useEffect(() => {
@@ -405,19 +449,7 @@ function FlipTab({ onBuildProfile }) {
 }
 
 // ── TAB 2: ITEM PROFILE ───────────────────────────────────────────────────────
-function ProfileTab({ prefill, onSaved }) {
-  const [brand, setBrand] = useState("");
-  const [model, setModel] = useState("");
-  const [size, setSize] = useState("");
-  const [gender, setGender] = useState("M");
-  const [photoUrl, setPhotoUrl] = useState("");
-  const [location, setLocation] = useState("");
-  const [ebayMin, setEbayMin] = useState(""); const [ebayMax, setEbayMax] = useState("");
-  const [amazonMin, setAmazonMin] = useState(""); const [amazonMax, setAmazonMax] = useState("");
-  const [mfgMin, setMfgMin] = useState(""); const [mfgMax, setMfgMax] = useState("");
-  const [confidence, setConfidence] = useState(50);
-  const [purchased, setPurchased] = useState(null);
-  const [date, setDate] = useState(today());
+function ProfileTab({ prefill, onSaved, brand, setBrand, model, setModel, size, setSize, gender, setGender, photoUrl, setPhotoUrl, location, setLocation, ebayMin, setEbayMin, ebayMax, setEbayMax, amazonMin, setAmazonMin, amazonMax, setAmazonMax, mfgMin, setMfgMin, mfgMax, setMfgMax, confidence, setConfidence, purchased, setPurchased, date, setDate }) {
   const [saved, setSaved] = useState(false);
 
   function confColor(v) { return v >= 70 ? "#34d399" : v >= 40 ? "#fbbf24" : "#f87171"; }
@@ -449,7 +481,7 @@ function ProfileTab({ prefill, onSaved }) {
 
       <SectionLabel text="Item Info" color="#60a5fa" />
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-        <TextInput label="Brand" value={brand} onChange={setBrand} placeholder="e.g. Nike, New Balance" />
+        <BrandPicker value={brand} onChange={setBrand} />
         <TextInput label="Model" value={model} onChange={setModel} placeholder="e.g. Air Force 1, 990v6" />
         <div style={{ display: "flex", gap: "12px" }}>
           <div style={{ flex: 1 }}><TextInput label="Size" value={size} onChange={setSize} placeholder="e.g. 10.5" /></div>
@@ -547,7 +579,7 @@ function SavedTab() {
       <div style={{ width: "100%", maxWidth: "480px", padding: "22px 20px 0", boxSizing: "border-box" }}>
         <button onClick={() => setSelected(null)} style={{ background: "none", border: "none", color: "#3b82f6", fontSize: "13px", fontWeight: "600", cursor: "pointer", padding: "0 0 16px 0" }}>← Back</button>
 
-        {it.photoUrl && <img src={it.photoUrl} alt="Item" style={{ width: "100%", height: "200px", objectFit: "cover", borderRadius: "16px", border: "1px solid #1e2a3a", marginBottom: "16px", display: "block" }} />}
+        {it.photoUrl && <img src={it.photoUrl} alt="Item" style={{ width: "100%", maxHeight: "320px", objectFit: "contain", background: "#0b1120", borderRadius: "16px", border: "1px solid #1e2a3a", marginBottom: "16px", display: "block" }} />}
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
           <div>
@@ -609,7 +641,7 @@ function SavedTab() {
                 background: "#0f1929", borderRadius: "16px", border: "1px solid #1e2a3a",
                 padding: "0", textAlign: "left", cursor: "pointer", width: "100%", overflow: "hidden",
               }}>
-                {it.photoUrl && <img src={it.photoUrl} alt="" style={{ width: "100%", height: "120px", objectFit: "cover", display: "block" }} />}
+                {it.photoUrl && <div style={{ width: "100%", background: "#0b1120", borderBottom: "1px solid #1e2a3a" }}><img src={it.photoUrl} alt="" style={{ width: "100%", maxHeight: "160px", objectFit: "contain", display: "block" }} /></div>}
                 <div style={{ padding: "12px 14px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div>
@@ -642,11 +674,62 @@ function SavedTab() {
 // ── ROOT ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [tab, setTab] = useState("flip");
-  const [profilePrefill, setProfilePrefill] = useState(null);
   const [savedCount, setSavedCount] = useState(loadItems().length);
 
-  function handleBuildProfile(results) { setProfilePrefill(results); setTab("profile"); }
-  function handleSaved() { setSavedCount(loadItems().length); setTab("saved"); }
+  // Flip state — lifted so it survives tab switches
+  const [retailPrice, setRetailPrice] = useState("");
+  const [discount, setDiscount] = useState(40);
+  const [ebayPrice, setEbayPrice] = useState("");
+  const [shippingCost, setShippingCost] = useState(String(DEFAULT_SHIPPING));
+  const [flipResults, setFlipResults] = useState(null);
+
+  // Profile state — lifted so it survives tab switches, only resets on save
+  const [brand, setBrand] = useState("");
+  const [model, setModel] = useState("");
+  const [size, setSize] = useState("");
+  const [gender, setGender] = useState("M");
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [location, setLocation] = useState("");
+  const [ebayMin, setEbayMin] = useState(""); const [ebayMax, setEbayMax] = useState("");
+  const [amazonMin, setAmazonMin] = useState(""); const [amazonMax, setAmazonMax] = useState("");
+  const [mfgMin, setMfgMin] = useState(""); const [mfgMax, setMfgMax] = useState("");
+  const [confidence, setConfidence] = useState(50);
+  const [purchased, setPurchased] = useState(null);
+  const [profileDate, setProfileDate] = useState(today());
+  const [profilePrefill, setProfilePrefill] = useState(null);
+
+  function handleBuildProfile(results) {
+    setProfilePrefill(results);
+    setTab("profile");
+  }
+
+  function resetProfile() {
+    setBrand(""); setModel(""); setSize(""); setGender("M");
+    setPhotoUrl(""); setLocation("");
+    setEbayMin(""); setEbayMax("");
+    setAmazonMin(""); setAmazonMax("");
+    setMfgMin(""); setMfgMax("");
+    setConfidence(50); setPurchased(null);
+    setProfileDate(today()); setProfilePrefill(null);
+  }
+
+  function handleSaved() {
+    setSavedCount(loadItems().length);
+    resetProfile();
+    setTab("saved");
+  }
+
+  const flipProps = { retailPrice, setRetailPrice, discount, setDiscount, ebayPrice, setEbayPrice, shippingCost, setShippingCost, flipResults, setFlipResults };
+  const profileProps = {
+    prefill: profilePrefill, onSaved: handleSaved,
+    brand, setBrand, model, setModel, size, setSize, gender, setGender,
+    photoUrl, setPhotoUrl, location, setLocation,
+    ebayMin, setEbayMin, ebayMax, setEbayMax,
+    amazonMin, setAmazonMin, amazonMax, setAmazonMax,
+    mfgMin, setMfgMin, mfgMax, setMfgMax,
+    confidence, setConfidence, purchased, setPurchased,
+    date: profileDate, setDate: setProfileDate,
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: "#0b1120", display: "flex", flexDirection: "column", alignItems: "center", paddingBottom: "48px" }}>
@@ -663,8 +746,8 @@ export default function App() {
           <TabButton label="📦 Saved" active={tab === "saved"} onClick={() => setTab("saved")} badge={savedCount} />
         </div>
       </div>
-      {tab === "flip" && <FlipTab onBuildProfile={handleBuildProfile} />}
-      {tab === "profile" && <ProfileTab prefill={profilePrefill} onSaved={handleSaved} />}
+      {tab === "flip" && <FlipTab onBuildProfile={handleBuildProfile} {...flipProps} />}
+      {tab === "profile" && <ProfileTab {...profileProps} />}
       {tab === "saved" && <SavedTab />}
       <div style={{ textAlign: "center", marginTop: "24px", fontSize: "10px", color: "#1e2a3a" }}>OkuClean Tools · Ross / DD's · Clark County NV</div>
     </div>
